@@ -29,4 +29,13 @@ class MqttService(
             .build()
         return mqttClient.toAsync().subscribe(subscribeMessage)
     }
+
+    fun subscribe(topic: String, callback: (topic: String, payload: String) -> Unit): CompletableFuture<Mqtt5SubAck> {
+        return mqttClient.toAsync().subscribeWith()
+            .topicFilter(topic)
+            .callback { publish ->
+                callback(publish.topic.toString(), String(publish.payloadAsBytes, StandardCharsets.UTF_8))
+            }
+            .send()
+    }
 }

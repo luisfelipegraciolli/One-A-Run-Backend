@@ -33,6 +33,16 @@ class RaceSession(
 
     var createdAt: Instant = Clock.System.now(),
 
+    // Primeiro jogador a completar a distância da sessão
+    var winnerRunnerId: String? = null,
+
+    // Distâncias finais registradas quando a sessão é encerrada
+    var hostDistanceMeters: Double? = null,
+
+    var guestDistanceMeters: Double? = null,
+
+    var finishedAt: Instant? = null,
+
     // Evita que dois convidados entrem ao mesmo tempo na mesma sessão
     @Version
     var version: Long = 0

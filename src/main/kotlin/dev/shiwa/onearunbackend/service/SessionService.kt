@@ -52,6 +52,8 @@ class SessionService(
         run {
             val guestRunnerId = UUID.randomUUID().toString()
             session.guestRunnerId = guestRunnerId
+            // Com os dois jogadores presentes ninguém mais pode entrar na sessão
+            session.status = SessionStatus.READY
             raceRepository.save(session)
 
             mqttService.publish(payload = "Runner $guestRunnerId joined the race")
