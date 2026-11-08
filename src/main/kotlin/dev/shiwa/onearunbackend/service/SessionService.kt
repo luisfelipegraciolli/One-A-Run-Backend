@@ -16,7 +16,7 @@ class SessionService(
     private val mqttService: MqttService
 ) {
     private val codeAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-    fun create(distanceMeters: Int): CreateSessionResponse {
+    fun create(hostRunnerName: String, distanceMeters: Int): CreateSessionResponse {
         require(distanceMeters in 100..1000) { "distanceMeters must be in 100..1000" }
         val hostRunnerId = UUID.randomUUID().toString()
         val session = raceRepository.save(
@@ -24,13 +24,15 @@ class SessionService(
                 joinCode = generateUniqueCode(),
                 distanceMeters = distanceMeters,
                 hostRunnerId = hostRunnerId,
+                hostRunnerName = hostRunnerName,
             )
         )
 
         return CreateSessionResponse(
             sessionId = session.id,
             joinCode = session.joinCode,
-            runnerId = hostRunnerId
+            runnerId = hostRunnerId,
+            hostRunnerName = hostRunnerName,
         )
     }
 
@@ -42,7 +44,7 @@ class SessionService(
         return session.get()
     }
 
-    fun join(joinCode: String): JoinSessionResponse {
+    fun join(guestRunnerName: String, joinCode: String): JoinSessionResponse {
         val session = raceRepository.findByJoinCode(joinCode.trim().uppercase(getDefault()))
             ?: throw SessionNotFoundException("Session not found")
 
@@ -52,6 +54,7 @@ class SessionService(
         run {
             val guestRunnerId = UUID.randomUUID().toString()
             session.guestRunnerId = guestRunnerId
+            session.guestRunnerName = guestRunnerName
             // Com os dois jogadores presentes ninguém mais pode entrar na sessão
             session.status = SessionStatus.READY
             raceRepository.save(session)
@@ -61,9 +64,11 @@ class SessionService(
                 topic = "race/${session.id}/status",
                 payload = "Runner $guestRunnerId joined the race"
             )
+
             return JoinSessionResponse(
                 sessionId = session.id,
                 guestRunnerId = guestRunnerId,
+                guestRunnerName = guestRunnerName,
                 distanceMeters = session.distanceMeters
             )
         }

@@ -20,12 +20,12 @@ class SessionController(
     }
     @PostMapping()
     fun createSession(@RequestBody @Valid request: CreateSessionRequest): ResponseEntity<CreateSessionResponse>  {
-        val response = sessionService.create(request.distanceInMeters)
+        val response = sessionService.create(distanceMeters =  request.distanceInMeters, hostRunnerName = request.hostRunnerName)
         return ResponseEntity(response, HttpStatus.CREATED)
     }
     @PostMapping("/join")
     fun join(@RequestBody @Valid request: JoinSessionRequest): ResponseEntity<JoinSessionResponse>{
-        val response = sessionService.join(request.joinCode)
+        val response = sessionService.join(joinCode = request.joinCode, guestRunnerName = request.guestRunnerName)
         return ResponseEntity(response, HttpStatus.OK)
     }
 }

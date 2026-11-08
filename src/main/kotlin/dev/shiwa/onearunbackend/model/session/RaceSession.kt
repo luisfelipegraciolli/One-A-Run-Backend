@@ -23,10 +23,12 @@ class RaceSession(
     var joinCode: String,
 
     var distanceMeters: Int,
+    var hostRunnerName: String,
 
     var hostRunnerId: String,
 
     var guestRunnerId: String? = null,
+    var guestRunnerName: String? = null,
 
     @Enumerated(EnumType.STRING)
     var status: SessionStatus = SessionStatus.WAITING,
