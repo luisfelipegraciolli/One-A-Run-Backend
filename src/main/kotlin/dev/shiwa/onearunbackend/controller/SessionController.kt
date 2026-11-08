@@ -9,16 +9,16 @@ import org.springframework.web.bind.annotation.*
 
 
 @RestController
-@RequestMapping("/api/v1/")
+@RequestMapping("/api/v1/race")
 class SessionController(
     private val sessionService: SessionService,
 ) {
-    @GetMapping("/session")
-    fun getSession(@RequestParam @Valid sessionId: String): ResponseEntity<RaceSession> {
-        val response = sessionService.getSession(sessionId)
+    @GetMapping("/{id}")
+    fun getSession(@PathVariable id: String): ResponseEntity<RaceSession> {
+        val response = sessionService.getSession(id)
         return ResponseEntity(response, HttpStatus.CREATED)
     }
-    @PostMapping("/session")
+    @PostMapping()
     fun createSession(@RequestBody @Valid request: CreateSessionRequest): ResponseEntity<CreateSessionResponse>  {
         val response = sessionService.create(request.distanceInMeters)
         return ResponseEntity(response, HttpStatus.CREATED)
