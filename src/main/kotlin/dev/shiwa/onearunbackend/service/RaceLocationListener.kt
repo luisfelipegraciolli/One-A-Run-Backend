@@ -76,8 +76,8 @@ class RaceLocationListener(
         }
 
         // Atualiza os dois jogadores: o próprio e o adversário
-        publishProgress(session, session.hostRunnerId)
-        publishProgress(session, guestId)
+        publishProgress(session, runnerId = session.hostRunnerId)
+        publishProgress(session, runnerId = guestId)
 
         if (session.winnerRunnerId != previousWinner || session.status == SessionStatus.FINISHED) {
             publishResult(session)
