@@ -8,6 +8,8 @@ import dev.shiwa.onearunbackend.model.session.SessionStatus
 import org.springframework.stereotype.Service
 import java.util.Locale.getDefault
 import java.util.UUID
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 
 @Service
@@ -59,7 +61,8 @@ class SessionService(
             session.status = SessionStatus.READY
             raceRepository.save(session)
 
-            mqttService.publish(payload = "Runner $guestRunnerId joined the race")
+            subscribeToStatus("race/${session.id}/status")
+
             mqttService.publish(
                 topic = "race/${session.id}/status",
                 payload = "Runner $guestRunnerId joined the race"
@@ -80,5 +83,22 @@ class SessionService(
             if (!raceRepository.existsByJoinCode(code)) return code
         }
         error("Não foi possível gerar um código único")
+    }
+
+    private fun subscribeToStatus(topic: String) {
+        // DEBUG Line
+        val delay = 5L
+        mqttService.subscribe(topic = topic)
+            .whenComplete { _, throwable ->
+                if (throwable != null) {
+                    System.err.println("Failed to subscribe to $topic: ${throwable.message}. Retrying...")
+                    CompletableFuture.delayedExecutor(delay, TimeUnit.SECONDS)
+                        .execute { subscribeToStatus(
+                            topic = topic
+                        ) }
+                } else {
+                    println("Successfully subscribed to topic: $topic")
+                }
+            }
     }
 }
