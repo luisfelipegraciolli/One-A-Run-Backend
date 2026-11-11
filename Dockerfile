@@ -36,4 +36,4 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
 
 # Define limites de memória para a JVM adequados a containers pequenos
-ENTRYPOINT ["java", "-XX:+UseG1GC", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
