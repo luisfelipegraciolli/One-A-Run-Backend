@@ -1,5 +1,6 @@
 package dev.shiwa.onearunbackend.service
 
+import com.hivemq.client.mqtt.mqtt5.message.subscribe.suback.Mqtt5SubAck
 import dev.shiwa.onearunbackend.model.session.RaceSession
 import dev.shiwa.onearunbackend.model.session.SessionStatus
 import dev.shiwa.onearunbackend.model.tracking.RaceResult
@@ -33,7 +34,7 @@ class RaceLocationListener(
     @EventListener(ApplicationReadyEvent::class)
     fun subscribeToLocations() {
         mqttService.subscribe(LOCATION_TOPIC_FILTER) { topic, payload -> handleMessage(topic, payload) }
-            .whenComplete { _, throwable ->
+            .whenComplete { _: Mqtt5SubAck?, throwable: Throwable? ->
                 if (throwable != null) {
                     System.err.println("Failed to subscribe to $LOCATION_TOPIC_FILTER: ${throwable.message}. Retrying...")
                     CompletableFuture.delayedExecutor(RETRY_DELAY_SECONDS, TimeUnit.SECONDS)
@@ -85,6 +86,14 @@ class RaceLocationListener(
         if (session.status == SessionStatus.FINISHED) {
             trackingService.clearSession(sessionId)
             sessionLocks.remove(sessionId)
+
+            CompletableFuture.delayedExecutor(5, TimeUnit.MINUTES).execute {
+                try {
+                    raceRepository.deleteById(sessionId)
+                } catch (e: Exception) {
+                    System.err.println("Erro ao deletar sessão expirada $sessionId: ${e.message}")
+                }
+            }
         }
     }
 
